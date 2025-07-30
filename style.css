@@ -11,21 +11,58 @@ body, html {
   background: #f4f4f4;
   display: flex;
   flex-direction: column;
+  overflow: hidden; /* Prevent scrollbars caused by fixed elements */
 }
 
-/* Map container */
+/* Map container fills available space */
 #map {
   flex-grow: 1;
   height: 100%;
+  z-index: 1;
 }
-
-/* Top controls container */
-#controls-top {
+#appHeader {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
+  height: 60px;
+  background: linear-gradient(90deg, #0d47a1, #1976d2, #42a5f5);
+  color: white;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-weight: 900;
+  font-size: 1.5rem;
+  /* Center horizontally and vertically */
+  display: flex;
+  align-items: center;        /* <-- This makes icon & text line up on their centers */
+  justify-content: center;    /* Centers the combo in the header */
+  text-align: left;           /* Prevents centering inside header if not desired */
+  z-index: 10000;
+  user-select: none;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  box-sizing: border-box;
+  padding: 0;
+}
+
+#appLogoIcon {
+  height: 28px;
+  width: 28px;
+  margin-right: 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.09);
   background: white;
+  display: inline-block;
+  /* No vertical-align needed thanks to flex */
+}
+
+
+/* Shift the #controls-top down below header */
+#controls-top {
+  position: fixed;
+  top: 60px; /* Same height as #appHeader */
+  left: 0;
+  width: 100%;
+  background: white;
+  /* keep your existing styles, just add margin top */
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   padding: 10px;
   display: flex;
@@ -35,6 +72,7 @@ body, html {
   gap: 10px;
   z-index: 9999;
 }
+
 
 /* Buttons inside top controls */
 #controls-top button {
@@ -46,9 +84,10 @@ body, html {
   cursor: pointer;
   transition: background-color 0.3s ease;
   color: white;
+  user-select: none;
 }
 
-/* Specific buttons */
+/* Specific buttons with colors and hover */
 #clearBtn {
   background: #e74c3c;
 }
@@ -77,7 +116,7 @@ body, html {
   background: #d68910;
 }
 
-/* Share link input */
+/* Share link input box */
 #shareLink {
   flex-grow: 1;
   min-width: 200px;
@@ -98,12 +137,12 @@ body, html {
   width: 100%;
   background: white;
   padding: 15px;
-  box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  z-index: 9999;
+  z-index: 10000;
 }
 
 /* Progress bar wrapper */
@@ -111,17 +150,17 @@ body, html {
   width: 80%;
   max-width: 600px;
   text-align: center;
-  display: none; /* Initially hidden */
+  display: none; /* shown dynamically */
 }
 
-/* Progress text */
+/* Progress text above bar */
 #progressText {
   font-weight: 600;
   margin-bottom: 6px;
   color: #333;
 }
 
-/* Progress outer bar */
+/* Outer bar */
 #progressOuter {
   background: #ddd;
   height: 12px;
@@ -130,11 +169,11 @@ body, html {
   margin-bottom: 6px;
 }
 
-/* Progress inner bar */
+/* Inner progress bar */
 #progressInner {
   height: 100%;
-  width: 0%;
-  background: linear-gradient(90deg, #04d119, #00ff2a);
+  width: 0;
+  background: linear-gradient(90deg, #007bff, #00c6ff);
   transition: width 0.3s ease;
 }
 
@@ -157,6 +196,7 @@ body, html {
   font-weight: 600;
   transition: background 0.3s ease;
   animation: pulse 1.5s infinite;
+  user-select: none;
 }
 
 #startNavBtn:hover:not(:disabled) {
@@ -166,15 +206,21 @@ body, html {
 #startNavBtn:disabled {
   background: #a3c8ff;
   cursor: not-allowed;
-  animation: none; /* Stop pulse animation */
+  animation: none; /* stop pulse animation */
 }
 
-/* Responsive adjustments */
+/* Button pulse animation */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
+/* Responsive layout changes */
 @media (max-width: 768px) {
   #controls-top {
     justify-content: center;
   }
-
   #controls-top button {
     flex: 1 1 40%;
   }
@@ -187,25 +233,18 @@ body, html {
   }
 }
 
-/* Pulse animation for Start Navigation button */
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.03); }
-  100% { transform: scale(1); }
-}
-
-/* Popup overlay */
+/* Popup overlay - semi-transparent dark background covering entire viewport */
 .popup-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0,0,0,0.5);
-  display: none;
+  display: none; /* hidden until shown by JS */
   justify-content: center;
   align-items: center;
-  z-index: 10000;
+  z-index: 20000;
 }
 
-/* Popup styling */
+/* Popup container */
 .popup {
   background: white;
   width: 90%;
@@ -216,20 +255,28 @@ body, html {
   text-align: center;
   position: relative;
   animation: slideIn 0.3s ease forwards;
+  user-select: none;
 }
 
-.popup h2 {
+/* Popup title */
+.popup h2,
+.alert-title {
   margin-bottom: 20px;
   color: #333;
+  font-weight: bold;
+  font-size: 1.8rem;
 }
 
-.popup p {
+/* Alert description paragraph */
+.popup p,
+.alert-desc {
   color: #555;
-  font-size: 16px;
+  font-size: 1.1rem;
   margin-bottom: 30px;
+  font-weight: 500;
 }
 
-/* Close button inside popup */
+/* Close button (the X) */
 .btn-close-popup {
   position: absolute;
   top: 15px;
@@ -245,7 +292,47 @@ body, html {
   color: #007bff;
 }
 
-/* Slide in animation for popups */
+/* "Awesome!" completion button */
+#awesomeBtn {
+  margin-top: 10px;
+  background: #16c60c;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 32px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(22,198,12,0.18);
+  transition: background 0.2s, transform 0.17s;
+  user-select: none;
+}
+#awesomeBtn:hover {
+  background: #05990b;
+  transform: scale(1.04);
+}
+
+/* "Got it" button on route deviation alert */
+#gotItAlertBtn {
+  margin-top: 10px;
+  background: #e74c3c;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 32px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(231,76,60,0.18);
+  transition: background 0.2s, transform 0.17s;
+  user-select: none;
+}
+#gotItAlertBtn:hover {
+  background: #b82414;
+  transform: scale(1.04);
+}
+
+/* Popup show animation */
 @keyframes slideIn {
   from {
     opacity: 0;
