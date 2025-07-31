@@ -6,9 +6,8 @@
   <title>Marathon Walking Route</title>
   <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-<div id="appHeader">
+  <div id="appHeader">
   <img src="img/icon.png" alt="Marathon Icon" id="appLogoIcon">
   Marathon Navigator
 </div>
@@ -29,93 +28,22 @@
 >
   </div>
 <!-- Route Alert Popup -->
-<!-- <div class="popup-overlay" id="routeAlertPopup" style="display: none;">
+<div class="popup-overlay" id="routeAlertPopup" style="display: none;">
   <div class="popup">
     <button class="btn-close-popup" onclick="hideRouteAlert()" aria-label="Close popup">&times;</button>
     <h2>Alert!</h2>
     <p>You are not following the route.</p>
     <button class="btn-open-popup" onclick="hideRouteAlert()">Got it</button>
   </div>
-</div> -->
-
-
-
-<!-- Route Deviation Alert -->
-<!-- Route deviation alert -->
-
-<div class="popup-overlay" id="routeAlertPopup" style="display:none;">
-  <div class="popup">
-    <button class="btn-close-popup" onclick="hideRouteAlert()">&times;</button>
-    <h2 class="alert-title">⚠️ Off Route!</h2>
-    <!-- Remove the next line -->
-    <p class="alert-desc">
-      You have deviated from the planned route.
-    </p>
-    <button 
-      id="gotItAlertBtn"
-      onclick="hideRouteAlert()"
-      style="
-        margin-top: 10px;
-        background: #e74c3c;
-        color: white;
-        font-size: 1.1rem;
-        font-weight: bold;
-        border: none;
-        border-radius: 8px;
-        padding: 12px 32px;
-        cursor: pointer;
-        box-shadow: 0 4px 16px rgba(231,76,60,0.18);
-        transition: background 0.2s, transform 0.17s;"
-      onmouseover="this.style.background='#b82414'; this.style.transform='scale(1.04)';"
-      onmouseout="this.style.background='#e74c3c'; this.style.transform='scale(1)';"
-    >
-      Got it
-    </button>
-  </div>
 </div>
 
-<!-- <div class="popup-overlay" id="routeAlertPopup" style="display:none;">
-  <div class="popup">
-    <button class="btn-close-popup" onclick="hideRouteAlert()">&times;</button>
-    <p id="routeAlertMessage">You have deviated from the route!</p>
-  </div>
-</div> -->
-<!-- Completion celebratory popup -->
-<div class="popup-overlay" id="completionPopup" style="display:none;">
-  <div class="popup">
-    <button class="btn-close-popup" onclick="closeCompletionPopup()">&times;</button>
-    <h2 class="popup-title" style="font-size:1.5rem; margin-bottom:18px;">🎉 Marathon Complete! 🎉</h2>
-    <p class="popup-desc" style="font-size:1.25rem; color:#222; font-weight:500; margin-bottom:32px;">
-      Congratulations! You have successfully completed the marathon route!
-    </p>
-    <button 
-      id="awesomeBtn"
-      onclick="closeCompletionPopup()"
-      style="
-        margin-top:10px;
-        background: #16c60c;
-        color: white;
-        font-size: 1.1rem;
-        font-weight: bold;
-        border: none;
-        border-radius: 10px;
-        padding: 12px 32px;
-        cursor: pointer;
-        box-shadow: 0 4px 16px rgba(22,198,12,0.18);
-        transition: background 0.2s, transform 0.17s;
-      "
-      onmouseover="this.style.background='#05990b'; this.style.transform='scale(1.04)';"
-      onmouseout="this.style.background='#16c60c'; this.style.transform='scale(1)';"
-    >
-      Awesome!
-    </button>
+<div id="congratsPopup" class="popup-overlay">
+  <div class="popup-content">
+    <h2>🎉 Congratulations!</h2>
+    <p>You have reached your destination.</p>
+    <button onclick="closeCongratsPopup()">Close</button>
   </div>
 </div>
-
-
-
-
-<!-- /// -->
 
 
   <div class="controls-bottom">
@@ -130,36 +58,13 @@
     <button id="startNavBtn" disabled onclick="startNavigation()">Start Navigation</button>
 </div>
 
-<div class="popup-overlay" id="farFromStartPopup" style="display:none;">
-  <div class="popup">
-    <button class="btn-close-popup" onclick="hideFarFromStartPopup()">&times;</button>
-    <h2 class="alert-title" style="color:#b82414;">🔔 Far From Start!</h2>
-    <p class="alert-desc">
-      You are far from the starting point.<br>
-      Please go to the start to begin your route!
-    </p>
-    <button 
-      id="goToStartBtn"
-      onclick="hideFarFromStartPopup()"
-      style="
-        margin-top: 8px;
-        background: #e67e22;
-        color: white;
-        font-size: 1.05rem;
-        font-weight: bold;
-        border: none;
-        border-radius: 8px;
-        padding: 10px 28px;
-        cursor: pointer;
-        box-shadow: 0 3px 8px rgba(230,126,34,0.10);
-        transition: background 0.17s, transform 0.13s;"
-      onmouseover="this.style.background='#b3641a'; this.style.transform='scale(1.045)';"
-      onmouseout="this.style.background='#e67e22'; this.style.transform='scale(1)';"
-    >
-      Got it
-    </button>
-  </div>
-</div>
+  <!-- <div id="progressBarWrapper" style="display:none">
+    <div id="progressText">0% • 0 m left</div>
+    <div id="progressOuter">
+      <div id="progressInner"></div>
+    </div>
+    <div class="muted" id="etaText"></div>
+  </div> -->
 
   <div id="map"></div>
 
