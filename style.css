@@ -11,15 +11,15 @@ body, html {
   background: #f4f4f4;
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* Prevent scrollbars caused by fixed elements */
 }
 
-/* Map container fills available space */
+
+
 #map {
   flex-grow: 1;
-  height: 100%;
-  z-index: 1;
+  height: 100%; /* or a fixed height if you want */
 }
+/* Top controls container */
 #appHeader {
   position: fixed;
   top: 0;
@@ -73,7 +73,6 @@ body, html {
   z-index: 9999;
 }
 
-
 /* Buttons inside top controls */
 #controls-top button {
   padding: 10px 14px;
@@ -83,13 +82,13 @@ body, html {
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.3s ease;
+   /*background: #2980b9; */
   color: white;
-  user-select: none;
 }
 
-/* Specific buttons with colors and hover */
 #clearBtn {
   background: #e74c3c;
+  color: white;
 }
 #clearBtn:hover {
   background: #c0392b;
@@ -97,6 +96,7 @@ body, html {
 
 #saveBtn {
   background: #2980b9;
+  color: white;
 }
 #saveBtn:hover {
   background: #2471a3;
@@ -104,6 +104,7 @@ body, html {
 
 #loadBtn {
   background: #27ae60;
+  color: white;
 }
 #loadBtn:hover {
   background: #1e8449;
@@ -111,12 +112,12 @@ body, html {
 
 #shareBtn {
   background: #f39c12;
+  color: white;
 }
 #shareBtn:hover {
   background: #d68910;
 }
-
-/* Share link input box */
+/* Share link input */
 #shareLink {
   flex-grow: 1;
   min-width: 200px;
@@ -137,12 +138,12 @@ body, html {
   width: 100%;
   background: white;
   padding: 15px;
-  box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  z-index: 10000;
+  z-index: 9999;
 }
 
 /* Progress bar wrapper */
@@ -150,17 +151,17 @@ body, html {
   width: 80%;
   max-width: 600px;
   text-align: center;
-  display: none; /* shown dynamically */
+  display: none; /* Initially hidden */
 }
 
-/* Progress text above bar */
+/* Progress text */
 #progressText {
   font-weight: 600;
   margin-bottom: 6px;
   color: #333;
 }
 
-/* Outer bar */
+/* Progress outer bar */
 #progressOuter {
   background: #ddd;
   height: 12px;
@@ -169,11 +170,11 @@ body, html {
   margin-bottom: 6px;
 }
 
-/* Inner progress bar */
+/* Progress inner bar */
 #progressInner {
   height: 100%;
-  width: 0;
-  background: linear-gradient(90deg, #007bff, #00c6ff);
+  width: 0%;
+  background: linear-gradient(90deg, #04d119, #00ff2a);
   transition: width 0.3s ease;
 }
 
@@ -192,11 +193,10 @@ body, html {
   border-radius: 30px;
   border: none;
   cursor: pointer;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2); 
   font-weight: 600;
   transition: background 0.3s ease;
   animation: pulse 1.5s infinite;
-  user-select: none;
 }
 
 #startNavBtn:hover:not(:disabled) {
@@ -206,26 +206,24 @@ body, html {
 #startNavBtn:disabled {
   background: #a3c8ff;
   cursor: not-allowed;
-  animation: none; /* stop pulse animation */
+  animation: none;  /* stop pulse animation */
 }
 
-/* Button pulse animation */
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  #controls-top {
+    justify-content: center;
+  }
+
+  #controls-top button {
+    flex: 1 1 40%;
+  }
+}
 @keyframes pulse {
   0% { transform: scale(1); }
   50% { transform: scale(1.03); }
   100% { transform: scale(1); }
 }
-
-/* Responsive layout changes */
-@media (max-width: 768px) {
-  #controls-top {
-    justify-content: center;
-  }
-  #controls-top button {
-    flex: 1 1 40%;
-  }
-}
-
 @media (max-width: 480px) {
   #startNavBtn {
     width: 90%;
@@ -233,18 +231,17 @@ body, html {
   }
 }
 
-/* Popup overlay - semi-transparent dark background covering entire viewport */
+
 .popup-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0,0,0,0.5);
-  display: none; /* hidden until shown by JS */
+  display: none;
   justify-content: center;
   align-items: center;
-  z-index: 20000;
+  z-index: 10000;
 }
 
-/* Popup container */
 .popup {
   background: white;
   width: 90%;
@@ -255,28 +252,19 @@ body, html {
   text-align: center;
   position: relative;
   animation: slideIn 0.3s ease forwards;
-  user-select: none;
 }
 
-/* Popup title */
-.popup h2,
-.alert-title {
+.popup h2 {
   margin-bottom: 20px;
   color: #333;
-  font-weight: bold;
-  font-size: 1.8rem;
 }
 
-/* Alert description paragraph */
-.popup p,
-.alert-desc {
+.popup p {
   color: #555;
-  font-size: 1.1rem;
+  font-size: 16px;
   margin-bottom: 30px;
-  font-weight: 500;
 }
 
-/* Close button (the X) */
 .btn-close-popup {
   position: absolute;
   top: 15px;
@@ -290,56 +278,4 @@ body, html {
 }
 .btn-close-popup:hover {
   color: #007bff;
-}
-
-/* "Awesome!" completion button */
-#awesomeBtn {
-  margin-top: 10px;
-  background: #16c60c;
-  color: white;
-  font-size: 1.1rem;
-  font-weight: bold;
-  border: none;
-  border-radius: 8px;
-  padding: 12px 32px;
-  cursor: pointer;
-  box-shadow: 0 4px 16px rgba(22,198,12,0.18);
-  transition: background 0.2s, transform 0.17s;
-  user-select: none;
-}
-#awesomeBtn:hover {
-  background: #05990b;
-  transform: scale(1.04);
-}
-
-/* "Got it" button on route deviation alert */
-#gotItAlertBtn {
-  margin-top: 10px;
-  background: #e74c3c;
-  color: white;
-  font-size: 1.1rem;
-  font-weight: bold;
-  border: none;
-  border-radius: 8px;
-  padding: 12px 32px;
-  cursor: pointer;
-  box-shadow: 0 4px 16px rgba(231,76,60,0.18);
-  transition: background 0.2s, transform 0.17s;
-  user-select: none;
-}
-#gotItAlertBtn:hover {
-  background: #b82414;
-  transform: scale(1.04);
-}
-
-/* Popup show animation */
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
