@@ -13,12 +13,30 @@ let map, directionsService, directionsRenderer, gpsMarker;
     let lastProgressMeters = 0;
     let infoWindow = null;
 let lastDeviationTime = 0;
-let navigationFinished = false;
-
     // Detect mode from URL param: "author" (default) or "follower"
     const urlParams = new URLSearchParams(window.location.search);
     const mode = urlParams.get("mode") || "author";
     const isAuthor = mode === "author";
+
+    // On load, toggle UI buttons based on mode
+//     window.onload = () => {
+//       if (!isAuthor) {
+//         // Disable editing controls for follower
+// const controlsTop = document.getElementById("controls-top");
+//     controlsTop.style.display = "none";
+
+//     // Adjust the map margin-top so it fills the space at top
+//     const mapElem = document.getElementById("map");
+//     mapElem.style.marginTop = "0";
+//         document.getElementById("clearBtn").style.display = "none";
+//         document.getElementById("saveBtn").style.display = "none";
+//         document.getElementById("loadBtn").style.display = "none";
+//         document.getElementById("shareBtn").style.display = "none";
+//         document.getElementById("shareLink").style.display = "none";
+
+//       }
+//     };
+
 
 window.onload = () => {
   const controlsTop = document.getElementById("controls-top");
@@ -207,6 +225,14 @@ const content = `
       waypointMarkers.push({ marker, crossed: false });
       updateRoute();
     }
+
+    // For loading waypoints (both author & follower), bypass author check
+    // function addWaypointDirect(latlng) {
+    //   waypoints.push(latlng);
+    //   const marker = createMarker(latlng, waypoints.length - 1);
+    //   waypointMarkers.push({ marker, crossed: false });
+    //   updateRoute();
+    // }
 function addWaypointDirect(latlng, suppressUpdate = false) {
   waypoints.push(latlng);
   const marker = createMarker(latlng, waypoints.length - 1);
@@ -251,24 +277,24 @@ function addWaypointDirect(latlng, suppressUpdate = false) {
       calculateRoute();
     }
 let alertShown = false;
+
 function showRouteAlert() {
-  document.getElementById("routeAlertPopup").style.display = "flex";
-}
-function hideRouteAlert() {
-  document.getElementById("routeAlertPopup").style.display = "none";
-}
-function showCompletionPopup() {
-  document.getElementById("completionPopup").style.display = "flex";
-}
-function closeCompletionPopup() {
-  document.getElementById("completionPopup").style.display = "none";
+  if (!alertShown) {
+    document.getElementById("routeAlertPopup").style.display = "flex";
+    alertShown = true;
+  }
 }
 
-function showFarFromStartPopup() {
-  document.getElementById('farFromStartPopup').style.display = 'flex';
+function hideRouteAlert() {
+  document.getElementById("routeAlertPopup").style.display = "none";
+  alertShown = false;
 }
-function hideFarFromStartPopup() {
-  document.getElementById('farFromStartPopup').style.display = 'none';
+function showCompletionPopup() {
+  document.getElementById("completionPopup").style.display = "block";
+}
+
+function hideCompletionPopup() {
+  document.getElementById("completionPopup").style.display = "none";
 }
 
     function calculateRoute() {
@@ -383,24 +409,13 @@ function hideFarFromStartPopup() {
       }
     }
 
-  function checkStartButton(currentPos) {
-  const btn = document.getElementById("startNavBtn");
-  if (waypoints.length < 2 || fullPath.length === 0) {
-    btn.disabled = true;
-    return;
-  }
-  const start = waypoints[0];
-  const distToStart = google.maps.geometry.spherical.computeDistanceBetween(currentPos, start);
-  btn.disabled = distToStart > 20;
-
-
-  if (distToStart > 50 && !navigationStarted) {
-  showFarFromStartPopup();
-} else {
-  hideFarFromStartPopup();
-  }
-}
-
+    function checkStartButton(currentPos) {
+      const btn = document.getElementById("startNavBtn");
+      if (waypoints.length === 0) { btn.disabled = true; return; }
+      const start = waypoints[0];
+      const dist = google.maps.geometry.spherical.computeDistanceBetween(currentPos, start);
+      btn.disabled = dist > 30 || fullPath.length === 0;
+    }
 
     function startNavigation() {
       if (!fullPath.length) {
@@ -420,188 +435,86 @@ function hideFarFromStartPopup() {
       updateProgressUI(0, totalDist);
     }
 
-//     function updateSmoothProgress(currentPos) {
-//   if (!fullPath.length) return;
+    function updateSmoothProgress(currentPos) {
+      if (!fullPath.length) return;
 
-//   // Find closest point on polyline
-//   const searchStart = Math.max(lastProgressIndex - 5, 0);
-//   let best = { dist: Infinity, segIndex: -1, projPoint: null, projRatio: 0, cumMetersAtProj: 0 };
-//   for (let i = searchStart; i < fullPath.length - 1; i++) {
-//     const a = fullPath[i];
-//     const b = fullPath[i + 1];
-//     const proj = projectPointOnSegment(currentPos, a, b);
-//     if (!proj) continue;
-//     const d = google.maps.geometry.spherical.computeDistanceBetween(currentPos, proj.point);
-//     if (d < best.dist) {
-//       best.dist = d;
-//       best.segIndex = i;
-//       best.projPoint = proj.point;
-//       best.projRatio = proj.t;
-//       const distToA = cumDist[i];
-//       const segLen = google.maps.geometry.spherical.computeDistanceBetween(a, b);
-//       best.cumMetersAtProj = distToA + segLen * proj.t;
-//     }
-//   }
-//   if (best.segIndex === -1) return;
+      const searchStart = Math.max(lastProgressIndex - 5, 0);
+      let best = { dist: Infinity, segIndex: -1, projPoint: null, projRatio: 0, cumMetersAtProj: 0 };
 
-//   // Color path on the map
-//   const donePts = fullPath.slice(0, best.segIndex + 1).concat([best.projPoint]);
-//   const futurePts = [best.projPoint].concat(fullPath.slice(best.segIndex + 1));
-//   doneRoute.setPath(donePts);
-//   doneRouteBase.setPath(donePts);
-//   upcomingRoute.setPath(futurePts);
-//   upcomingRouteBase.setPath(futurePts);
-//   lastProgressIndex = Math.max(lastProgressIndex, best.segIndex);
+      for (let i = searchStart; i < fullPath.length - 1; i++) {
+        const a = fullPath[i];
+        const b = fullPath[i + 1];
 
-//   // Block any progress or markers until first waypoint visited physically
-//   if (!waypointMarkers[0].crossed) {
-//     const distToStart = google.maps.geometry.spherical.computeDistanceBetween(currentPos, waypoints[0]);
-//     if (distToStart < 15) {
-//       waypointMarkers[0].crossed = true;
-//       waypointMarkers[0].marker.setIcon(createMarkerIcon(1, "#00c853"));
-//     } else {
-//       // Freeze progress UI at zero before user starts
-//       updateProgressUI(0, totalDist);
-//       return;
-//     }
-//   }
+        const proj = projectPointOnSegment(currentPos, a, b);
+        if (!proj) continue;
 
-//   // Cross ONLY the next uncrossed waypoint in order, only if physically close
-//   for (let i = 0; i < waypoints.length; i++) {
-//   if (!waypointMarkers[i].crossed) {
-//     const dist = google.maps.geometry.spherical.computeDistanceBetween(currentPos, waypoints[i]);
-//     if (dist < 3) { // 3 meters is very tight, increases reliability over exact equality
-//       waypointMarkers[i].crossed = true;
-//       waypointMarkers[i].marker.setIcon(createMarkerIcon(i + 1, "#00c853"));
-//     }
-//     break; // Only the next required point
-//   }
-// }
-
-
-//    let prevIdx = 0;
-//   for (let i = waypoints.length - 1; i >= 0; i--) {
-//     if (waypointMarkers[i].crossed) {
-//       prevIdx = i;
-//       break;
-//     }
-//   }
-//   const nextIdx = Math.min(prevIdx + 1, waypoints.length - 1);
-//   const prevPoint = waypoints[prevIdx];
-//   const nextPoint = waypoints[nextIdx];
-//   const segLength = google.maps.geometry.spherical.computeDistanceBetween(prevPoint, nextPoint);
-//   const distFromPrev = google.maps.geometry.spherical.computeDistanceBetween(prevPoint, currentPos);
-//   const legProgress = Math.min(1, Math.max(0, distFromPrev / Math.max(1, segLength)));
-//   const percent = ((prevIdx + legProgress) / (waypoints.length - 1)) * 100;
-//   updateProgressUI(percent, `Next checkpoint: ${(segLength - distFromPrev).toFixed(0)} m`);
-
-//   // 3. Completion popup
-//   const endIdx = waypoints.length - 1;
-//   const distToEnd = google.maps.geometry.spherical.computeDistanceBetween(currentPos, waypoints[endIdx]);
-//   const allCrossed = waypointMarkers.every(obj => obj.crossed);
-//   if (!navigationFinished && distToEnd < 3 && allCrossed) {
-//     navigationFinished = true;
-//     showCompletionPopup();
-//     document.getElementById("startNavBtn").disabled = true;
-//   }
-
-
-//   // Deviation alert logic
-//   const distanceFromPath = best.dist;
-//   const now = Date.now();
-//   const offRoute = distanceFromPath > 30;
-//   if (!navigationFinished) {
-//     if (offRoute && now - lastDeviationTime > 6000) {
-//       showRouteAlert();
-//       lastDeviationTime = now;
-//     } else if (!offRoute) {
-//       hideRouteAlert();
-//     }
-//   }
-// }
-
-function updateSmoothProgress(currentPos) {
-  if (!fullPath.length || waypointMarkers.length !== waypoints.length) return;
-
-  // --- Step 1: Require first waypoint physically crossed to start any progress
-  if (!waypointMarkers[0].crossed) {
-    const distToStart = google.maps.geometry.spherical.computeDistanceBetween(currentPos, waypoints[0]);
-    if (distToStart < 3) {  // strict 3m threshold
-      waypointMarkers[0].crossed = true;
-      waypointMarkers[0].marker.setIcon(createMarkerIcon(1, "#00c853"));
-    } else {
-      updateProgressUI(0, 'Go to start');
-      return; // freeze progress if first point not visited yet
-    }
-  }
-
-  // --- Step 2: Only cross next uncrossed waypoint if within 3 meters
-  for (let i = 1; i < waypoints.length; i++) {
-    if (!waypointMarkers[i].crossed) {
-      const dist = google.maps.geometry.spherical.computeDistanceBetween(currentPos, waypoints[i]);
-      if (dist < 3) {
-        waypointMarkers[i].crossed = true;
-        waypointMarkers[i].marker.setIcon(createMarkerIcon(i + 1, "#00c853"));
+        const d = google.maps.geometry.spherical.computeDistanceBetween(currentPos, proj.point);
+        if (d < best.dist) {
+          best.dist = d;
+          best.segIndex = i;
+          best.projPoint = proj.point;
+          best.projRatio = proj.t;
+          const distToA = cumDist[i];
+          const segLen = google.maps.geometry.spherical.computeDistanceBetween(a, b);
+          best.cumMetersAtProj = distToA + segLen * proj.t;
+        }
       }
-      break; // only next waypoint can be crossed
+
+      if (best.segIndex === -1) return;
+
+      const donePts = fullPath.slice(0, best.segIndex + 1).concat([best.projPoint]);
+      const futurePts = [best.projPoint].concat(fullPath.slice(best.segIndex + 1));
+
+      doneRoute.setPath(donePts);
+      doneRouteBase.setPath(donePts);
+      upcomingRoute.setPath(futurePts);
+      upcomingRouteBase.setPath(futurePts);
+
+      lastProgressIndex = Math.max(lastProgressIndex, best.segIndex);
+
+      const doneMeters = best.cumMetersAtProj;
+      const remain = Math.max(0, totalDist - doneMeters);
+      const pct = totalDist > 0 ? (doneMeters / totalDist) * 100 : 0;
+      updateProgressUI(pct, remain);
+
+      // waypoints.forEach((wp, i) => {
+      //   if (!waypointMarkers[i].crossed) {
+      //     const wpIndex = fullPath.findIndex(p => google.maps.geometry.spherical.computeDistanceBetween(p, wp) < 5);
+      //     if (wpIndex !== -1 && wpIndex <= best.segIndex) {
+      //       waypointMarkers[i].crossed = true;
+      //       waypointMarkers[i].marker.setIcon(createMarkerIcon(i + 1, "#00c853")); // turn green
+      //     }
+      //   }
+      // });
+      waypoints.forEach((wp, i) => {
+  if (!waypointMarkers[i].crossed) {
+    const wpIndex = fullPath.findIndex(p => google.maps.geometry.spherical.computeDistanceBetween(p, wp) < 5);
+
+    // Also check against the projected point if this is the final waypoint
+    const isLast = i === waypoints.length - 1;
+    const nearProjected = google.maps.geometry.spherical.computeDistanceBetween(best.projPoint, wp) < 5;
+
+    if ((wpIndex !== -1 && wpIndex <= best.segIndex) || (isLast && nearProjected)) {
+      waypointMarkers[i].crossed = true;
+      waypointMarkers[i].marker.setIcon(createMarkerIcon(i + 1, "#00c853"));
+      if (isLast && nearProjected) {
+    showCompletionPopup();  // <--- Add this
+  } // turn green
     }
   }
+});
 
-  // --- Step 3: Calculate smooth progress percent (between last and next waypoint)
-  let lastCrossedIdx = 0;
-  for (let i = waypoints.length - 1; i >= 0; i--) {
-    if (waypointMarkers[i].crossed) {
-      lastCrossedIdx = i;
-      break;
-    }
+// --- Deviation Alert Logic ---
+const distanceFromPath = best.dist; // already calculated
+
+  const now = Date.now();
+  const offRoute = distanceFromPath > 30; // meters
+
+  if (offRoute && now - lastDeviationTime > 6000) {
+    showRouteAlert();
+    lastDeviationTime = now;
   }
-  const nextIdx = Math.min(lastCrossedIdx + 1, waypoints.length - 1);
-
-  const lastPoint = waypoints[lastCrossedIdx];
-  const nextPoint = waypoints[nextIdx];
-  const segLength = google.maps.geometry.spherical.computeDistanceBetween(lastPoint, nextPoint);
-  let distFromLast = google.maps.geometry.spherical.computeDistanceBetween(lastPoint, currentPos);
-  distFromLast = Math.min(distFromLast, segLength); // clamp max
-
-  const legProgress = segLength > 0 ? distFromLast / segLength : 0;
-  const percent = ((lastCrossedIdx + legProgress) / (waypoints.length - 1)) * 100;
-  const remainingMeters = Math.max(0, segLength - distFromLast);
-
-  updateProgressUI(percent, `Next checkpoint: ${remainingMeters.toFixed(1)} m`);
-
-  // --- Step 4: Completion - all waypoints crossed and physically at end within 3m
-  const distToEnd = google.maps.geometry.spherical.computeDistanceBetween(currentPos, waypoints[waypoints.length - 1]);
-  const allCrossed = waypointMarkers.every(wp => wp.crossed);
-  if (!navigationFinished && allCrossed && distToEnd < 3) {
-    navigationFinished = true;
-    showCompletionPopup();
-    document.getElementById("startNavBtn").disabled = true;
-  }
-
-  // --- Step 5: Deviation alert logic ---
-  if (fullPath.length >= 2) {
-    let bestDist = Infinity;
-    for (let i = 0; i < fullPath.length - 1; i++) {
-      const a = fullPath[i];
-      const b = fullPath[i + 1];
-      const proj = projectPointOnSegment(currentPos, a, b);
-      if (!proj) continue;
-      const d = google.maps.geometry.spherical.computeDistanceBetween(currentPos, proj.point);
-      if (d < bestDist) bestDist = d;
     }
-    const now = Date.now();
-    const offRoute = bestDist > 30;
-    if (!navigationFinished) {
-      if (offRoute && now - lastDeviationTime > 6000) {
-        showRouteAlert();
-        lastDeviationTime = now;
-      } else if (!offRoute) {
-        hideRouteAlert();
-      }
-    }
-  }
-}
-
 
     function projectPointOnSegment(p, a, b) {
       const ax = a.lng(), ay = a.lat();
@@ -632,52 +545,48 @@ function updateSmoothProgress(currentPos) {
       document.getElementById("progressBarWrapper").style.display = "none";
     }
 
-   function updateProgressUI(percent, remainingMeters) {
-  const pctRounded = Math.min(100, Math.max(0, percent)).toFixed(1);
-  const progressInner = document.getElementById("progressInner");
-  const progressText = document.getElementById("progressText");
-  const etaText = document.getElementById("etaText");
+    function updateProgressUI(percent, remainingMeters) {
+      const pctRounded = Math.min(100, Math.max(0, percent)).toFixed(1);
+      document.getElementById("progressInner").style.width = pctRounded + "%";
+      document.getElementById("progressText").textContent = `${pctRounded}% • ${formatDistance(remainingMeters)} left`;
 
-  if (progressInner) progressInner.style.width = pctRounded + "%";
-  if (progressText) progressText.textContent = `${pctRounded}% • ${formatDistance(remainingMeters)} left`;
+      if (lastProgressTime == null) {
+        lastProgressTime = Date.now();
+        lastProgressMeters = totalDist - remainingMeters;
+        document.getElementById("etaText").textContent = "";
+        return;
+      }
 
-  if (lastProgressTime == null) {
-    lastProgressTime = Date.now();
-    lastProgressMeters = totalDist - remainingMeters;
-    if (etaText) etaText.textContent = "";
-    return;
-  }
+      const now = Date.now();
+      const elapsedSec = (now - lastProgressTime) / 1000;
+      if (elapsedSec < 3) return; // only update ETA every 3s
 
-  const now = Date.now();
-  const elapsedSec = (now - lastProgressTime) / 1000;
-  if (elapsedSec < 3) return;  // throttle ETA update
+      const currentMetersDone = totalDist - remainingMeters;
+      const metersMoved = currentMetersDone - lastProgressMeters;
 
-  const currentMetersDone = totalDist - remainingMeters;
-  const metersMoved = currentMetersDone - lastProgressMeters;
-  if (metersMoved <= 0) return;
+      if (metersMoved <= 0) return;
 
-  const speedMps = metersMoved / elapsedSec;
-  const etaSeconds = remainingMeters / speedMps;
+      const speedMps = metersMoved / elapsedSec;
+      const etaSeconds = remainingMeters / speedMps;
 
-  if (etaText) etaText.textContent = `ETA: ${formatTimeDuration(etaSeconds)}`;
+      const etaStr = formatTimeDuration(etaSeconds);
+      document.getElementById("etaText").textContent = `ETA: ${etaStr}`;
 
-  lastProgressTime = now;
-  lastProgressMeters = currentMetersDone;
-}
+      lastProgressTime = now;
+      lastProgressMeters = currentMetersDone;
+    }
 
-function formatDistance(meters) {
-  if (typeof meters !== "number" || isNaN(meters)) return "--";
-  if (meters >= 1000) return (meters / 1000).toFixed(2) + " km";
-  return meters.toFixed(0) + " m";
-}
+    function formatDistance(meters) {
+      if (meters >= 1000) return (meters / 1000).toFixed(2) + " km";
+      return meters.toFixed(0) + " m";
+    }
 
-function formatTimeDuration(seconds) {
-  if (seconds < 60) return `${Math.round(seconds)} sec`;
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.round(seconds % 60);
-  return `${mins} min ${secs} sec`;
-}
-
+    function formatTimeDuration(seconds) {
+      if (seconds < 60) return `${Math.round(seconds)} sec`;
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.round(seconds % 60);
+      return `${mins} min ${secs} sec`;
+    }
 
     function resetNavigation() {
       navigationStarted = false;
